@@ -39,5 +39,4 @@ func (h *Hub) GetClient(userID int64) (*Client, bool) {
 	defer h.mutex.RUnlock()
 	client, ok := h.OnlineUsers[userID]
 	return client, ok 
-
 }
