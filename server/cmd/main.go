@@ -5,8 +5,10 @@ import (
 	"server/api"
 	"server/global"
 	"server/initialize"
+	"server/internal/friend"
 	"server/internal/message"
 	"server/internal/user"
+	"server/pkg"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -25,6 +27,8 @@ func main() {
 	err := global.DB.AutoMigrate(
 		&user.User{},
 		&message.Message{},
+		&friend.Friend{},
+		&friend.FriendApply{},
 	)
 	if err != nil {
 		zap.S().Fatalf("migrate failed: %v", err)
@@ -37,6 +41,15 @@ func main() {
 		public.POST("/register", api.Register)
 		public.POST("/login", api.Login)
 		public.GET("/ws", api.WebSocketConnect)
+	}
+
+	auth := r.Group("/auth")
+	auth.Use(pkg.JWTMiddleWare())
+	{
+		auth.POST("/apply_friend", api.ApplyFriend)
+		auth.POST("/agree_friend", api.AgreeFriend)
+		auth.GET("/friend_list", api.FriendList)
+		auth.GET("/friend_applies", api.FriendApplies)
 	}
 
 	port := global.Config.Server.Port

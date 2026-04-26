@@ -2,8 +2,11 @@ package pkg
 
 import (
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const SecretKey = "im-go-secret"
@@ -43,4 +46,46 @@ func ParseToken(token string) (*Claims, error) {
 	}
 
 	return nil, errors.New("token 无效")
+}
+
+func GetUserID(c *gin.Context) int64 {
+	uid, exists := c.Get("user_id")
+	if !exists {
+		return 0 
+	}
+	return uid.(int64)
+}
+
+func JWTMiddleWare() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenStr := c.GetHeader("token")
+		if tokenStr == "" {
+			// 尝试从 GET 参数获取
+			tokenStr = c.Query("token")
+		}
+
+		if tokenStr == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": 401,
+				"msg":  "请先登录",
+			})
+			c.Abort()
+			return
+		}
+
+		// 解析 token
+		claims, err := ParseToken(tokenStr)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"code": 401,
+				"msg":  "登录已过期或无效",
+			})
+			c.Abort()
+			return
+		}
+
+		// 将用户信息存入上下文
+		c.Set("user_id", claims.UserID)
+		c.Next()
+	}
 }
