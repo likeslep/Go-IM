@@ -1,0 +1,17 @@
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: 123456
+  database: go_im
+  charset: utf8mb4
+  max_idle: 10
+  max_open: 100
+
+redis:
+  addr: 127.0.0.1:6379
+  password: ""
+  db: 0
+
+server:
+  port: 8080
