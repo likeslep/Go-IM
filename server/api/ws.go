@@ -58,4 +58,7 @@ func WebSocketConnect(c *gin.Context) {
 	// 6. 启动读写协程
 	go client.Write()
 	go client.Read()
+
+	// 用户上线，拉去离线消息
+	go chat.PullOfflineMessage(client)
 }
